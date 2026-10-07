@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState, useSyncExternalStore } from "react";
 import {
   CalendarDays,
   Check,
@@ -22,6 +22,10 @@ import {
 } from "@/components/ui/select";
 import type { GardenData, GardenDay, ThemeName } from "@/lib/garden";
 import { gardenThemes } from "@/lib/garden-svg";
+
+const subscribeToOrigin = () => () => {};
+const getBrowserOrigin = () => window.location.origin;
+const getServerOrigin = () => "";
 
 const themeLabels: Record<ThemeName, string> = {
   forest: "جنگل",
@@ -184,6 +188,7 @@ export function GitGarden({ initialGarden }: { initialGarden: GardenData }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const origin = useSyncExternalStore(subscribeToOrigin, getBrowserOrigin, getServerOrigin);
   const currentYear = new Date().getFullYear();
   const years = useMemo(() => Array.from({ length: 6 }, (_, index) => currentYear - index), [currentYear]);
 
@@ -210,7 +215,7 @@ export function GitGarden({ initialGarden }: { initialGarden: GardenData }) {
   }
 
   function embedUrl() {
-    return `${window.location.origin}/api/garden/${garden.username}?year=${garden.year}&theme=${themeName}`;
+    return `${origin}/api/garden/${garden.username}?year=${garden.year}&theme=${themeName}`;
   }
 
   async function copyEmbed() {

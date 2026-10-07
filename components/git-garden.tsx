@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import {
   CalendarDays,
   Check,
@@ -184,13 +184,8 @@ export function GitGarden({ initialGarden }: { initialGarden: GardenData }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
-  const [origin, setOrigin] = useState("");
   const currentYear = new Date().getFullYear();
   const years = useMemo(() => Array.from({ length: 6 }, (_, index) => currentYear - index), [currentYear]);
-
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
 
   async function growGarden(event: FormEvent) {
     event.preventDefault();
@@ -215,7 +210,7 @@ export function GitGarden({ initialGarden }: { initialGarden: GardenData }) {
   }
 
   function embedUrl() {
-    return `${origin}/api/garden/${garden.username}?year=${garden.year}&theme=${themeName}`;
+    return `${window.location.origin}/api/garden/${garden.username}?year=${garden.year}&theme=${themeName}`;
   }
 
   async function copyEmbed() {

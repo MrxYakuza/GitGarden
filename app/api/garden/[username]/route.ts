@@ -23,7 +23,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ use
         "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'",
       },
     });
-  } catch {
-    return new Response("ساخت باغ ممکن نشد.", { status: 502 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "ساخت باغ ممکن نشد.";
+    return new Response(message, { status: message.includes("تنظیم نشده") ? 503 : 502 });
   }
 }

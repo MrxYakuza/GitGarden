@@ -1,6 +1,5 @@
 import {
   calculateStats,
-  generateDemoGarden,
   levelForCount,
   type GardenData,
   type GardenDay,
@@ -40,7 +39,9 @@ const query = `
 
 export async function getGardenData(username: string, year: number): Promise<GardenData> {
   const token = process.env.GITHUB_TOKEN;
-  if (!token) return generateDemoGarden(username, year);
+  if (!token) {
+    throw new Error("توکن گیت‌هاب روی سرور تنظیم نشده است؛ عدد ساختگی نمایش داده نمی‌شود.");
+  }
 
   const response = await fetch("https://api.github.com/graphql", {
     method: "POST",

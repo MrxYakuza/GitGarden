@@ -16,6 +16,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ use
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "دریافت اطلاعات گیت‌هاب ممکن نشد.";
-    return NextResponse.json({ error: message }, { status: message.includes("پیدا نشد") ? 404 : 502 });
+    const status = message.includes("پیدا نشد") ? 404 : message.includes("تنظیم نشده") ? 503 : 502;
+    return NextResponse.json({ error: message }, { status });
   }
 }

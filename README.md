@@ -10,7 +10,7 @@ in a GitHub profile README.
 ## Features
 
 - Interactive 53 × 7 contribution garden
-- Deterministic sample mode that works without credentials
+- Clearly labelled landing-page preview without credentials
 - Real public contribution data through GitHub GraphQL
 - Forest, Midnight, and Sakura themes
 - Contribution totals, active days, streaks, and best-day stats
@@ -26,8 +26,8 @@ npm run dev
 
 Open `http://127.0.0.1:5173`.
 
-Without a token, GitGarden stays in clearly labelled sample mode. The same
-username and year always generate the same sample garden.
+Without a token, the landing page shows a clearly labelled preview. Requests
+for a GitHub username return a configuration error instead of fabricated data.
 
 ## Use real GitHub data
 

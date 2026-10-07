@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { GardenData, GardenDay, ThemeName } from "@/lib/garden";
-import { gardenThemes } from "@/lib/garden-svg";
+import { activityLevels, gardenThemes } from "@/lib/garden-svg";
 
 const subscribeToOrigin = () => () => {};
 const getBrowserOrigin = () => window.location.origin;
@@ -49,7 +49,7 @@ function Plant({
   isGolden: boolean;
 }) {
   const theme = gardenThemes[themeName];
-  const bloom = isGolden ? "#e8bd54" : theme.bloom;
+  const levelStyle = activityLevels[day.level];
   const delay = `${(day.week * 7 + day.weekday) * 2.1}ms`;
   if (day.level === 0) return null;
 
@@ -61,6 +61,8 @@ function Plant({
           <path d={`M${x} ${y}C${x - 1} ${y - 5} ${x + 1} ${y - 9} ${x} ${y - 12}`} stroke="url(#stemGradient)" strokeWidth="2.2" strokeLinecap="round" fill="none" />
           <ellipse cx={x - 3.3} cy={y - 6.5} rx="4" ry="2.2" fill="url(#leafGradient)" transform={`rotate(28 ${x - 3.3} ${y - 6.5})`} />
           <ellipse cx={x + 3.2} cy={y - 9.5} rx="4" ry="2.2" fill="url(#leafGradient)" transform={`rotate(-32 ${x + 3.2} ${y - 9.5})`} />
+          <circle cx={x} cy={y - 12.5} r="2.8" fill={levelStyle.color} />
+          <circle cx={x - 0.7} cy={y - 13.3} r=".8" fill={levelStyle.light} />
         </>
       )}
       {day.level === 2 && (
@@ -69,10 +71,10 @@ function Plant({
           <ellipse cx={x - 3.4} cy={y - 7.5} rx="4.2" ry="2.2" fill="url(#leafGradient)" transform={`rotate(30 ${x - 3.4} ${y - 7.5})`} />
           <ellipse cx={x + 3.3} cy={y - 11} rx="4" ry="2.1" fill="url(#leafGradient)" transform={`rotate(-31 ${x + 3.3} ${y - 11})`} />
           {[0, 72, 144, 216, 288].map((angle) => (
-            <ellipse key={angle} cx={x} cy={y - 20} rx="2.5" ry="4.5" fill={isGolden ? "url(#goldPetalGradient)" : "url(#petalGradient)"} transform={`rotate(${angle} ${x} ${y - 16})`} />
+            <ellipse key={angle} cx={x} cy={y - 20} rx="2.5" ry="4.5" fill="url(#petalGradient-2)" transform={`rotate(${angle} ${x} ${y - 16})`} />
           ))}
-          <circle cx={x} cy={y - 16} r="2.2" fill={theme.bloomAlt} />
-          <circle cx={x - 0.7} cy={y - 16.8} r=".7" fill={theme.text} opacity=".65" />
+          <circle cx={x} cy={y - 16} r="2.2" fill={levelStyle.dark} />
+          <circle cx={x - 0.7} cy={y - 16.8} r=".7" fill={levelStyle.light} />
         </>
       )}
       {day.level === 3 && (
@@ -84,8 +86,8 @@ function Plant({
           <ellipse cx={x + 2} cy={y - 16} rx="5" ry="3" fill="url(#leafGradient)" transform={`rotate(18 ${x + 2} ${y - 16})`} />
           {[-7, 0, 7].map((offset, index) => (
             <g key={offset}>
-              <circle cx={x + offset} cy={y - 18 - (index % 2) * 3} r="3.6" fill={isGolden ? "url(#goldPetalGradient)" : "url(#petalGradient)"} />
-              <circle cx={x + offset} cy={y - 18 - (index % 2) * 3} r="1.25" fill={theme.bloomAlt} />
+              <circle cx={x + offset} cy={y - 18 - (index % 2) * 3} r="3.6" fill="url(#petalGradient-3)" />
+              <circle cx={x + offset} cy={y - 18 - (index % 2) * 3} r="1.25" fill={levelStyle.dark} />
             </g>
           ))}
         </>
@@ -99,9 +101,9 @@ function Plant({
           <circle cx={x + 8} cy={y - 27} r="9" fill="url(#canopyGradient)" />
           <circle cx={x} cy={y - 33} r="11" fill="url(#canopyGradient)" />
           <circle cx={x - 2} cy={y - 23} r="10" fill="url(#canopyGradient)" />
-          <circle cx={x - 4} cy={y - 37} r="3.2" fill={bloom} opacity=".94" />
-          <circle cx={x + 8} cy={y - 30} r="2.7" fill={bloom} opacity=".9" />
-          <circle cx={x - 10} cy={y - 25} r="2.4" fill={theme.bloomAlt} opacity=".88" />
+          <circle cx={x - 4} cy={y - 37} r="3.2" fill={levelStyle.color} opacity=".94" />
+          <circle cx={x + 8} cy={y - 30} r="2.7" fill={levelStyle.light} opacity=".9" />
+          <circle cx={x - 10} cy={y - 25} r="2.4" fill={levelStyle.dark} opacity=".88" />
           <circle cx={x - 5} cy={y - 31} r="3.8" fill={theme.text} opacity=".12" />
         </>
       )}
@@ -121,7 +123,6 @@ function GardenMap({
   onSelectDay: (day: GardenDay) => void;
 }) {
   const theme = gardenThemes[themeName];
-  const bloom = theme.bloom;
   const bestDate = garden.stats.bestDay?.date;
 
   return (
@@ -137,10 +138,22 @@ function GardenMap({
           <stop offset="0" stopColor={theme.background} />
           <stop offset="1" stopColor={theme.panel} />
         </linearGradient>
-        <linearGradient id="soilTopGradient" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor={theme.soilTop} />
-          <stop offset="1" stopColor={theme.soil} />
-        </linearGradient>
+        {([1, 2, 3, 4] as const).map((level) => {
+          const style = activityLevels[level];
+          return (
+            <g key={level}>
+              <linearGradient id={`levelSoilGradient-${level}`} x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stopColor={style.light} />
+                <stop offset="1" stopColor={style.color} />
+              </linearGradient>
+              <radialGradient id={`petalGradient-${level}`} cx="35%" cy="28%" r="75%">
+                <stop offset="0" stopColor={style.light} />
+                <stop offset=".5" stopColor={style.color} />
+                <stop offset="1" stopColor={style.dark} />
+              </radialGradient>
+            </g>
+          );
+        })}
         <linearGradient id="soilSideGradient" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor={theme.soil} />
           <stop offset="1" stopColor={theme.background} />
@@ -161,16 +174,6 @@ function GardenMap({
         <radialGradient id="canopyGradient" cx="35%" cy="28%" r="75%">
           <stop offset="0" stopColor={theme.leaf} />
           <stop offset="1" stopColor={theme.stem} />
-        </radialGradient>
-        <radialGradient id="petalGradient" cx="35%" cy="28%" r="75%">
-          <stop offset="0" stopColor={theme.text} stopOpacity=".82" />
-          <stop offset=".45" stopColor={bloom} />
-          <stop offset="1" stopColor={theme.bloomAlt} />
-        </radialGradient>
-        <radialGradient id="goldPetalGradient" cx="35%" cy="28%" r="75%">
-          <stop offset="0" stopColor="#f7dfa0" />
-          <stop offset=".5" stopColor="#e8bd54" />
-          <stop offset="1" stopColor="#b87921" />
         </radialGradient>
         <radialGradient id="goldHalo" cx="50%" cy="50%" r="50%">
           <stop offset="0" stopColor="#e8bd54" stopOpacity=".42" />
@@ -195,7 +198,8 @@ function GardenMap({
           const x = 420 + (day.week - day.weekday) * 13;
           const y = 76 + (day.week + day.weekday) * 6.5;
           const active = selectedDay?.date === day.date;
-          const soil = day.level === 0 ? theme.soil : "url(#soilTopGradient)";
+          const levelStyle = activityLevels[day.level];
+          const soil = day.level === 0 ? theme.soil : `url(#levelSoilGradient-${day.level})`;
           return (
             <g
               key={day.date}
@@ -204,8 +208,8 @@ function GardenMap({
               onClick={() => onSelectDay(day)}
             >
               <title>{`${day.date}: ${day.count.toLocaleString("fa-IR")} مشارکت`}</title>
-              <polygon points={`${x - 13},${y} ${x},${y + 6} ${x},${y + 10} ${x - 13},${y + 4}`} fill="url(#soilSideGradient)" opacity={day.level === 0 ? 0.48 : 0.86} />
-              <polygon points={`${x + 13},${y} ${x},${y + 6} ${x},${y + 10} ${x + 13},${y + 4}`} fill={theme.soil} opacity={day.level === 0 ? 0.45 : 0.78} />
+              <polygon points={`${x - 13},${y} ${x},${y + 6} ${x},${y + 10} ${x - 13},${y + 4}`} fill={day.level === 0 ? "url(#soilSideGradient)" : levelStyle.dark} opacity={day.level === 0 ? 0.48 : 0.86} />
+              <polygon points={`${x + 13},${y} ${x},${y + 6} ${x},${y + 10} ${x + 13},${y + 4}`} fill={day.level === 0 ? theme.soil : levelStyle.dark} opacity={day.level === 0 ? 0.45 : 0.78} />
               <polygon
                 points={`${x},${y - 6} ${x + 13},${y} ${x},${y + 6} ${x - 13},${y}`}
                 fill={soil}
@@ -218,22 +222,19 @@ function GardenMap({
           );
         })}
       </g>
-      <g fill={theme.text} opacity=".64" fontFamily="Epilogue, Arial, sans-serif" fontSize="12">
-        <text x="68" y="418">فعالیت کمتر</text>
-        <text x="842" y="418">فعالیت بیشتر</text>
-      </g>
-      {[0, 1, 2, 3, 4].map((level) => (
-        <rect
-          key={level}
-          x={143 + level * 20}
-          y="407"
-          width="14"
-          height="14"
-          rx="4"
-          fill={level === 0 ? theme.soil : level < 3 ? theme.leaf : level === 3 ? theme.stem : theme.bloom}
-          opacity={level === 0 ? 0.62 : 1}
-        />
-      ))}
+      <rect x="48" y="397" width="884" height="51" rx="18" fill={theme.background} opacity=".4" />
+      {([0, 1, 2, 3, 4] as const).map((level, index) => {
+        const style = activityLevels[level];
+        const x = 90 + index * 172;
+        return (
+          <g key={level} fontFamily="Epilogue, Tahoma, Arial, sans-serif">
+            <polygon points={`${x},418 ${x + 11},423 ${x},428 ${x - 11},423`} fill={level === 0 ? theme.soil : style.color} />
+            {level > 0 && <circle cx={x} cy="415" r="3.2" fill={style.color} />}
+            <text x={x + 18} y="421" fill={theme.text} fontSize="12">{style.label}</text>
+            <text x={x + 18} y="437" fill={theme.text} opacity=".65" fontSize="10">{style.range} مشارکت</text>
+          </g>
+        );
+      })}
     </svg>
   );
 }
